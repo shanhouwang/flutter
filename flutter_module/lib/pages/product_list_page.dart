@@ -89,6 +89,10 @@ class _ProductListPageState extends State<ProductListPage> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _onRefresh,
+                    displacement: 40,
+                    edgeOffset: 0,
+                    color: Colors.purple,
+                    backgroundColor: Colors.white,
                     child: _buildBody(viewModel),
                   ),
                 ),
@@ -196,61 +200,92 @@ class _ProductListPageState extends State<ProductListPage> {
     );
   }
 
-  /// 商品列表
+  /// 商品列表 + 加载更多
   Widget _buildProductList(ProductListViewModel viewModel) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: viewModel.filteredProducts.length,
-      itemBuilder: (context, index) {
-        final product = viewModel.filteredProducts[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 2,
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.purple.shade100,
-              child: Icon(
-                product.icon,
-                color: Colors.purple,
-              ),
-            ),
-            title: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.price,
-                  style: TextStyle(
-                    color: Colors.red[600],
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (product.description != null)
-                  Text(
-                    product.description!,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/details',
-                arguments: product,
-              );
-            },
-          ),
-        );
+    // 使用 NotificationListener 监听滚动到底部以加载更多（Flutter 推荐做法之一）
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification.metrics.pixels >= notification.metrics.maxScrollExtent - 100) {
+          // 接近底部，尝试加载更多
+          viewModel.loadMore();
+        }
+        return false;
       },
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: viewModel.filteredProducts.length + (viewModel.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          // 尾部加载指示器
+          final isFooter = index == viewModel.filteredProducts.length && viewModel.hasMore;
+          if (isFooter) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: viewModel.isLoadingMore
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        '上拉加载更多',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+              ),
+            );
+          }
+
+          final product = viewModel.filteredProducts[index];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: 2,
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.purple.shade100,
+                child: Icon(
+                  product.icon,
+                  color: Colors.purple,
+                ),
+              ),
+              title: Text(
+                product.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.price,
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (product.description != null)
+                    Text(
+                      product.description!,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/details',
+                  arguments: product,
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
