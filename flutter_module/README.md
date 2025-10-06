@@ -212,8 +212,8 @@ flutter run
 
 如有问题或建议，请通过以下方式联系：
 
-- 项目 Issues: [GitHub Issues](https://github.com/your-repo/issues)
-- 邮箱: your-email@example.com
+- 项目 Issues: [GitHub Issues](https://github.com/shanhouwang/flutter/issues)
+- 邮箱: shanhouwang@163.com
 
 ---
 
