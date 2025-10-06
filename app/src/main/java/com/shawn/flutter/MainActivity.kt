@@ -39,7 +39,10 @@ class MainActivity : ComponentActivity() {
             MyFlutterApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainContent(
-                        onNavigateToFlutter = { navigateToFlutter() },
+                        onNavigateToFlutterHome = { navigateToFlutterHome() },
+                        onNavigateToFlutterProfile = { navigateToFlutterProfile() },
+                        onNavigateToFlutterSettings = { navigateToFlutterSettings() },
+                        onNavigateToFlutterProducts = { navigateToFlutterProducts() },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -68,13 +71,19 @@ class MainActivity : ComponentActivity() {
         FlutterEngineCache.getInstance().put(FLUTTER_ENGINE_ID, flutterEngine)
     }
     
-    private fun navigateToFlutter() {
+    private fun navigateToFlutter(route: String = "/") {
         startActivity(
-            FlutterActivity
-                .withCachedEngine(FLUTTER_ENGINE_ID)
+            CustomFlutterActivity
+                .withCachedEngineAndRoute(FLUTTER_ENGINE_ID, route)
                 .build(this)
         )
     }
+    
+    // 跳转到不同的 Flutter 页面
+    private fun navigateToFlutterHome() = navigateToFlutter("/")
+    private fun navigateToFlutterProfile() = navigateToFlutter("/profile")
+    private fun navigateToFlutterSettings() = navigateToFlutter("/settings")
+    private fun navigateToFlutterProducts() = navigateToFlutter("/products")
     
     override fun onDestroy() {
         super.onDestroy()
@@ -85,7 +94,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainContent(
-    onNavigateToFlutter: () -> Unit,
+    onNavigateToFlutterHome: () -> Unit,
+    onNavigateToFlutterProfile: () -> Unit,
+    onNavigateToFlutterSettings: () -> Unit,
+    onNavigateToFlutterProducts: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var clickCount by remember { mutableStateOf(0) }
@@ -109,7 +121,7 @@ fun MainContent(
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "这是一个混合开发的应用\n点击下面的按钮跳转到 Flutter 页面",
+            text = "这是一个混合开发的应用\n选择要跳转的 Flutter 页面",
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -146,29 +158,87 @@ fun MainContent(
         
         Spacer(modifier = Modifier.height(32.dp))
         
-        // 跳转到 Flutter 按钮
-        Button(
-            onClick = {
-                clickCount++
-                onNavigateToFlutter()
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(
-                text = "跳转到 Flutter 页面",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
+        // Flutter 页面导航按钮
+        Text(
+            text = "Flutter 页面导航",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
         
         Spacer(modifier = Modifier.height(16.dp))
+        
+        // 第一行按钮
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = {
+                    clickCount++
+                    onNavigateToFlutterHome()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("首页", fontSize = 14.sp)
+            }
+            
+            Button(
+                onClick = {
+                    clickCount++
+                    onNavigateToFlutterProfile()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("个人资料", fontSize = 14.sp)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // 第二行按钮
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = {
+                    clickCount++
+                    onNavigateToFlutterSettings()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+            ) {
+                Text("设置", fontSize = 14.sp)
+            }
+            
+            Button(
+                onClick = {
+                    clickCount++
+                    onNavigateToFlutterProducts()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("商品列表", fontSize = 14.sp)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
         
         // 重置按钮
         OutlinedButton(
@@ -192,7 +262,10 @@ fun MainContent(
 fun MainContentPreview() {
     MyFlutterApplicationTheme {
         MainContent(
-            onNavigateToFlutter = {}
+            onNavigateToFlutterHome = {},
+            onNavigateToFlutterProfile = {},
+            onNavigateToFlutterSettings = {},
+            onNavigateToFlutterProducts = {}
         )
     }
 }

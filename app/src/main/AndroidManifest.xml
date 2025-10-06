@@ -29,6 +29,13 @@
             android:exported="false"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme" />
+            
+        <!-- Custom Flutter Activity -->
+        <activity
+            android:name=".CustomFlutterActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme" />
     </application>
 
 </manifest>

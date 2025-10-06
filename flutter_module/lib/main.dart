@@ -1,155 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'pages/pages.dart';
 
 void main() => runApp(const MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  String _initialRoute = '/';
+  static const platform = MethodChannel('flutter_to_android');
+
+  @override
+  void initState() {
+    super.initState();
+    _setupMethodChannel();
+  }
+
+  void _setupMethodChannel() {
+    platform.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'setInitialRoute':
+          setState(() {
+            _initialRoute = call.arguments as String? ?? '/';
+          });
+          // 导航到指定路由
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.pushNamedAndRemoveUntil(
+              _initialRoute,
+              (route) => false,
+            );
+          }
+          break;
+      }
+    });
+  }
+
+  // 全局导航键
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter 模块',
+      navigatorKey: navigatorKey,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      home: const FlutterHomePage(),
-    );
-  }
-}
-
-class FlutterHomePage extends StatefulWidget {
-  const FlutterHomePage({super.key});
-
-  @override
-  State<FlutterHomePage> createState() => _FlutterHomePageState();
-}
-
-class _FlutterHomePageState extends State<FlutterHomePage> {
-  int _visitCount = 0;
-  String _message = "欢迎来到 Flutter 页面！";
-
-  void _incrementVisit() {
-    setState(() {
-      _visitCount++;
-      _message = "您已经访问了 $_visitCount 次";
-    });
-  }
-
-  void _resetCounter() {
-    setState(() {
-      _visitCount = 0;
-      _message = "计数器已重置";
-    });
-  }
-
-  void _goBackToAndroid() {
-    // 通过 MethodChannel 与 Android 通信
-    const platform = MethodChannel('flutter_to_android');
-    platform.invokeMethod('goBack');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flutter 页面'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _goBackToAndroid,
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade50,
-              Colors.purple.shade50,
-            ],
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Icon(
-                  Icons.flutter_dash,
-                  size: 80,
-                  color: Colors.blue,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  _message,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-                Card(
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      children: [
-                        Text(
-                          '访问次数',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '$_visitCount',
-                          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _incrementVisit,
-                      icon: const Icon(Icons.add),
-                      label: const Text('增加'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _resetCounter,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('重置'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                OutlinedButton.icon(
-                  onPressed: _goBackToAndroid,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('返回 Android'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      // 设置初始路由
+      initialRoute: _initialRoute,
+      // 定义路由表
+      routes: {
+        '/': (context) => const FlutterHomePage(),
+        '/profile': (context) => const ProfilePage(),
+        '/settings': (context) => const SettingsPage(),
+        '/products': (context) => const ProductListPage(),
+        '/details': (context) => const ProductDetailPage(),
+      },
+      // 处理未知路由
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => const NotFoundPage(),
+        );
+      },
     );
   }
 }
