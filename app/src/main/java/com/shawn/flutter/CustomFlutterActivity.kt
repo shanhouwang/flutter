@@ -38,11 +38,6 @@ class CustomFlutterActivity : FlutterActivity() {
                         finish()
                         result.success(null)
                     }
-
-                    "getInitialRoute" -> {
-                        result.success(route)
-                    }
-
                     else -> result.notImplemented()
                 }
             }
